@@ -64,6 +64,7 @@
             gap: 0.5rem;
             min-width: 120px;
             text-align: center;
+            flex: 0 0 220px;
         }
         .company-logo img {
             max-height: 3rem;
@@ -73,6 +74,7 @@
             font-weight: 600;
             color: #2f3c32;
             line-height: 1.4;
+            white-space: nowrap;
         }
         .company-logo:hover {
             filter: grayscale(0%);
@@ -84,6 +86,14 @@
             border-color: #4A7C59;
             box-shadow: 0 0 15px rgba(74, 124, 89, 0.5);
             background-color: #f0fdf4;
+        }
+        .company-radar-wrapper {
+            width: 100%;
+            height: 200px;
+        }
+        .company-radar-wrapper canvas {
+            width: 100% !important;
+            height: 100% !important;
         }
         .tag {
             background-color: #E8F1E9;
@@ -221,13 +231,14 @@
             </div>
             <div class="bg-white p-6 rounded-xl shadow-md mb-8">
                 <h3 class="font-bold text-xl mb-4 text-center">台灣六家企業法說會表現比較</h3>
-                <div class="flex flex-wrap justify-center gap-4 mb-8 items-center" id="company-selector">
+                <div class="flex flex-nowrap gap-6 mb-8 items-start overflow-x-auto pb-4" id="company-selector">
                 </div>
                 <div id="company-details" class="mt-6 border-t pt-6">
                 </div>
             </div>
-             <div class="card">
+            <div class="card">
                 <h3 class="font-bold text-xl mb-4 text-center">綜合評分與比較雷達圖</h3>
+                <div id="radarControls" class="flex flex-wrap justify-center gap-3 mb-4"></div>
                 <div class="chart-container">
                     <canvas id="companyRadarChart"></canvas>
                 </div>
@@ -381,15 +392,41 @@
                 'dawushan': { name: '大武山', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=%E5%A4%A7%E6%AD%A6%E5%B1%B1&font=noto+sans+tc', tier: '第三梯隊', score: [3, 2, 2, 2, 3], analysis: { good: '成功將傳統農業定位為科技升級股，展現差異化策略，品牌形象一致。', bad: '需更具體展示科技化升級的投資回報率(ROI)，並深化成本傳導機制(如飼料成本)與價格對沖策略的說明。' }},
             };
 
+            const radarLabels = [
+                '專業度與清晰度',
+                '數據支撐完整性',
+                '策略邏輯與願景',
+                '風險溝通透明度',
+                ['商業模式產品', '內容述說力']
+            ];
+
+            const chartFillColors = [
+                'rgba(74, 124, 89, 0.4)',
+                'rgba(54, 162, 235, 0.4)',
+                'rgba(255, 206, 86, 0.4)',
+                'rgba(255, 99, 132, 0.4)',
+                'rgba(153, 102, 255, 0.4)',
+                'rgba(255, 159, 64, 0.4)'
+            ];
+
+            const chartBorderColors = [
+                'rgb(74, 124, 89)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 206, 86)',
+                'rgb(255, 99, 132)',
+                'rgb(153, 102, 255)',
+                'rgb(255, 159, 64)'
+            ];
+
             const selectorContainer = document.getElementById('company-selector');
             const detailsContainer = document.getElementById('company-details');
 
-            Object.keys(companyData).forEach(key => {
+            Object.keys(companyData).forEach((key, index) => {
                 const company = companyData[key];
                 const wrapper = document.createElement('div');
                 wrapper.className = 'company-logo';
                 wrapper.dataset.company = key;
-                
+
                 if (company.logo) {
                     const logoEl = document.createElement('img');
                     logoEl.src = company.logo;
@@ -403,7 +440,58 @@
                 nameEl.className = 'company-name';
 
                 wrapper.appendChild(nameEl);
+                const chartWrapper = document.createElement('div');
+                chartWrapper.className = 'company-radar-wrapper';
+
+                const chartCanvas = document.createElement('canvas');
+                chartCanvas.id = `radar-${key}`;
+                chartWrapper.appendChild(chartCanvas);
+
+                wrapper.appendChild(chartWrapper);
                 selectorContainer.appendChild(wrapper);
+
+                const miniChartCtx = chartCanvas.getContext('2d');
+                new Chart(miniChartCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: radarLabels,
+                        datasets: [{
+                            label: company.name,
+                            data: company.score,
+                            backgroundColor: chartFillColors[index % chartFillColors.length],
+                            borderColor: chartBorderColors[index % chartBorderColors.length],
+                            borderWidth: 2,
+                            pointBackgroundColor: chartBorderColors[index % chartBorderColors.length]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: { color: '#E5E7EB' },
+                                suggestedMin: 0,
+                                suggestedMax: 5,
+                                ticks: {
+                                    display: false
+                                },
+                                pointLabels: {
+                                    font: {
+                                        size: 10
+                                    },
+                                    color: '#4B5563'
+                                },
+                                grid: {
+                                    color: '#E5E7EB'
+                                }
+                            }
+                        }
+                    }
+                });
             });
             
             selectorContainer.addEventListener('click', function(e) {
@@ -444,38 +532,14 @@
             
             const ctx = document.getElementById('companyRadarChart').getContext('2d');
             
-            const radarLabels = [
-                '專業度與清晰度',
-                '數據支撐完整性',
-                '策略邏輯與願景',
-                '風險溝通透明度',
-                ['商業模式產品', '內容述說力']
-            ];
-            
             const radarDataSets = Object.values(companyData).map((company, index) => {
-                const colors = [
-                    'rgba(74, 124, 89, 0.4)',
-                    'rgba(54, 162, 235, 0.4)',
-                    'rgba(255, 206, 86, 0.4)',
-                    'rgba(255, 99, 132, 0.4)',
-                    'rgba(153, 102, 255, 0.4)',
-                    'rgba(255, 159, 64, 0.4)'
-                ];
-                const borderColors = [
-                    'rgb(74, 124, 89)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 206, 86)',
-                    'rgb(255, 99, 132)',
-                    'rgb(153, 102, 255)',
-                    'rgb(255, 159, 64)'
-                ];
                 return {
                     label: company.name,
                     data: company.score,
-                    backgroundColor: colors[index % colors.length],
-                    borderColor: borderColors[index % borderColors.length],
+                    backgroundColor: chartFillColors[index % chartFillColors.length],
+                    borderColor: chartBorderColors[index % chartBorderColors.length],
                     borderWidth: 2,
-                    pointBackgroundColor: borderColors[index % borderColors.length]
+                    pointBackgroundColor: chartBorderColors[index % chartBorderColors.length]
                 };
             });
 
@@ -532,6 +596,31 @@
                         },
                     }
                 }
+            });
+
+            const radarControlsContainer = document.getElementById('radarControls');
+            radarDataSets.forEach((dataset, index) => {
+                const controlLabel = document.createElement('label');
+                controlLabel.className = 'flex items-center gap-2 bg-[#f3f7f2] px-3 py-1 rounded-full cursor-pointer text-sm text-gray-700 shadow-sm';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = true;
+                checkbox.dataset.index = index;
+                checkbox.className = 'form-checkbox h-4 w-4 text-[#4A7C59]';
+
+                checkbox.addEventListener('change', (event) => {
+                    const datasetIndex = parseInt(event.target.dataset.index, 10);
+                    companyRadarChart.data.datasets[datasetIndex].hidden = !event.target.checked;
+                    companyRadarChart.update();
+                });
+
+                const labelText = document.createElement('span');
+                labelText.textContent = dataset.label;
+
+                controlLabel.appendChild(checkbox);
+                controlLabel.appendChild(labelText);
+                radarControlsContainer.appendChild(controlLabel);
             });
 
         });
