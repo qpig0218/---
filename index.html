@@ -69,6 +69,20 @@
         .company-logo img {
             max-height: 3rem;
         }
+        .company-symbol {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #f0fdf4, #d9ead3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #2f3c32;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            box-shadow: inset 0 0 0 1px rgba(74, 124, 89, 0.1);
+        }
         .company-name {
             font-size: 0.875rem;
             font-weight: 600;
@@ -382,7 +396,25 @@
 
             window.addEventListener('popstate', updateActiveState);
             updateActiveState();
-            
+
+            function getSymbolText(name) {
+                const trimmed = (name || '').trim();
+                if (!trimmed) {
+                    return '';
+                }
+
+                const isAscii = /^[\u0000-\u007F]+$/.test(trimmed);
+                if (isAscii) {
+                    const words = trimmed.split(/\s+/).filter(Boolean);
+                    if (words.length === 1) {
+                        return words[0].slice(0, 2).toUpperCase();
+                    }
+                    return words.map(word => word[0]).join('').slice(0, 2).toUpperCase();
+                }
+
+                return trimmed.slice(0, 2);
+            }
+
             const companyData = {
                 'linepay': { name: 'LINE Pay', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=LINE+Pay&font=noto+sans+tc', tier: '第一梯隊', score: [5, 5, 5, 4, 5], analysis: { good: '展現最專業的表現，從虧損到獲利的數據故事線清晰，策略邏輯完整，視覺化呈現優秀。', bad: '缺乏與同業(如街口支付)的橫向比較，對未來支付生態系的競爭格局可以有更深入的論述。' }},
                 'daiken': { name: '大研生醫', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=%E5%A4%A7%E7%A0%94%E7%94%9F%E9%86%AB&font=noto+sans+tc', tier: '第二梯隊', score: [4, 4, 4, 2, 4], analysis: { good: '運用「七大戰略引擎」概念展現系統性思維，品牌代言人策略成功，營收與毛利表現亮眼。', bad: '對庫存週轉天數飆升(53→214天)與負債比率攀升(39%→67%)的風險溝通不足，需主動解釋。' }},
@@ -427,13 +459,10 @@
                 wrapper.className = 'company-logo';
                 wrapper.dataset.company = key;
 
-                if (company.logo) {
-                    const logoEl = document.createElement('img');
-                    logoEl.src = company.logo;
-                    logoEl.alt = company.name;
-                    logoEl.className = 'h-12 w-auto object-contain';
-                    wrapper.appendChild(logoEl);
-                }
+                const symbolEl = document.createElement('div');
+                symbolEl.className = 'company-symbol';
+                symbolEl.textContent = getSymbolText(company.name);
+                wrapper.appendChild(symbolEl);
 
                 const nameEl = document.createElement('span');
                 nameEl.textContent = company.name;
@@ -467,6 +496,9 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        layout: {
+                            padding: { top: 16, bottom: 16, left: 16, right: 16 }
+                        },
                         plugins: {
                             legend: { display: false },
                             tooltip: { enabled: false }
@@ -483,7 +515,8 @@
                                     font: {
                                         size: 10
                                     },
-                                    color: '#4B5563'
+                                    color: '#4B5563',
+                                    padding: 8
                                 },
                                 grid: {
                                     color: '#E5E7EB'
@@ -552,6 +585,9 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 24, bottom: 24, left: 24, right: 24 }
+                    },
                     scales: {
                         r: {
                             angleLines: {
@@ -567,7 +603,8 @@
                                 font: {
                                     size: 12
                                 },
-                                color: '#333'
+                                color: '#333',
+                                padding: 12
                             }
                         }
                     },
