@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Warm Neutral Harmony -->
     <!-- Application Structure Plan: A thematic, non-linear SPA with five sections: Introduction, The Playbook, Case Studies, Analyst's Toolkit, and The Future. This structure is chosen to allow users to explore concepts based on interest (e.g., 'how to do it' vs. 'how to analyze it') rather than a rigid report format. Key interaction is the 'Case Studies' dashboard, where users can click on company logos to get a detailed breakdown and see a comparative chart, fostering direct engagement and comparison. -->
-    <!-- Visualization & Content Choices: Report Info: Six Taiwanese company analyses -> Goal: Compare performance -> Viz/Method: Interactive dashboard with clickable logos and a comparative bar chart -> Interaction: User selects a company to view its specific strengths/weaknesses and sees its relative standing on the chart. -> Justification: This transforms a long text comparison into an immediate, visual, and engaging experience. -> Library: Chart.js for the bar chart. Report Info: Strategic frameworks (Pyramid, 3x3 grid) -> Goal: Explain complex concepts -> Viz/Method: Interactive diagrams built with HTML/CSS -> Interaction: Hover or click to reveal details -> Justification: Breaks down dense theory into digestible, user-paced learning chunks. -> Library/Method: Vanilla JS + Tailwind CSS. -->
+    <!-- Visualization & Content Choices: Report Info: Six Taiwanese company analyses -> Goal: Compare performance -> Viz/Method: Interactive dashboard with clickable logos and a comparative radar chart -> Interaction: User selects a company to view its specific strengths/weaknesses and sees its relative standing on the chart across five dimensions. -> Justification: The radar chart provides a better multi-dimensional comparison than a bar chart for these qualitative scores. -> Library: Chart.js. Report Info: Strategic frameworks (Pyramid, 3x3 grid) -> Goal: Explain complex concepts -> Viz/Method: Interactive diagrams built with HTML/CSS -> Interaction: Hover or click to reveal details -> Justification: Breaks down dense theory into digestible, user-paced learning chunks. -> Library/Method: Vanilla JS + Tailwind CSS. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
@@ -26,6 +26,10 @@
         .nav-link:hover, .nav-link.active {
             color: #4A7C59;
             border-bottom-color: #4A7C59;
+        }
+        .mobile-nav-link.active {
+            background-color: #E8F1E9;
+            color: #4A7C59;
         }
         .content-section {
             display: none;
@@ -51,6 +55,8 @@
             cursor: pointer;
             opacity: 0.7;
             border: 3px solid transparent;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
         }
         .company-logo:hover {
             filter: grayscale(0%);
@@ -61,6 +67,7 @@
             opacity: 1;
             border-color: #4A7C59;
             box-shadow: 0 0 15px rgba(74, 124, 89, 0.5);
+            background-color: #f0fdf4;
         }
         .tag {
             background-color: #E8F1E9;
@@ -73,11 +80,11 @@
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            height: 40vh;
-            max-height: 450px;
+            height: 50vh;
+            max-height: 500px;
         }
     </style>
 </head>
@@ -97,8 +104,28 @@
                         <a href="#future" class="nav-link px-3 py-2 text-sm font-medium">未來趨勢</a>
                     </div>
                 </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4A7C59]">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" id="hamburger-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" id="close-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </nav>
+        <div class="md:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#intro" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">法說會是什麼</a>
+                <a href="#playbook" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">策略實戰手冊</a>
+                <a href="#cases" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">經典案例剖析</a>
+                <a href="#toolkit" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">投資人工具箱</a>
+                <a href="#future" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">未來趨勢</a>
+            </div>
+        </div>
     </header>
 
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -178,17 +205,17 @@
             </div>
             <div class="bg-white p-6 rounded-xl shadow-md mb-8">
                 <h3 class="font-bold text-xl mb-4 text-center">台灣六家企業法說會表現比較</h3>
-                <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8 items-center justify-items-center" id="company-selector">
+                <div class="flex flex-wrap justify-center gap-4 mb-8 items-center" id="company-selector">
                 </div>
                 <div id="company-details" class="mt-6 border-t pt-6">
                 </div>
             </div>
              <div class="card">
-                <h3 class="font-bold text-xl mb-4 text-center">綜合評分與比較圖表</h3>
+                <h3 class="font-bold text-xl mb-4 text-center">綜合評分與比較雷達圖</h3>
                 <div class="chart-container">
-                    <canvas id="companyComparisonChart"></canvas>
+                    <canvas id="companyRadarChart"></canvas>
                 </div>
-                <p class="text-sm text-gray-500 mt-4 text-center">此圖表根據公開報告中的質化分析，將各公司在四個維度的表現量化評分，分數越高代表該面向表現越受肯定。</p>
+                <p class="text-sm text-gray-500 mt-4 text-center">此圖表根據公開報告中的質化分析，將各公司在五個維度的表現量化評分(1-5分)，面積越大代表綜合表現越全面。</p>
             </div>
         </div>
 
@@ -271,12 +298,25 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const navLinks = document.querySelectorAll('.nav-link');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
             const sections = document.querySelectorAll('.content-section');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
 
             function updateActiveState() {
                 let currentHash = window.location.hash || '#intro';
                 
                 navLinks.forEach(link => {
+                    if (link.getAttribute('href') === currentHash) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+
+                mobileNavLinks.forEach(link => {
                     if (link.getAttribute('href') === currentHash) {
                         link.classList.add('active');
                     } else {
@@ -293,24 +333,36 @@
                 });
             }
 
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    history.pushState(null, null, this.getAttribute('href'));
-                    updateActiveState();
-                });
+            function handleNavClick(e) {
+                e.preventDefault();
+                history.pushState(null, null, this.getAttribute('href'));
+                updateActiveState();
+            }
+
+            navLinks.forEach(link => link.addEventListener('click', handleNavClick));
+            mobileNavLinks.forEach(link => link.addEventListener('click', function(e) {
+                handleNavClick.call(this, e);
+                mobileMenu.classList.add('hidden');
+                hamburgerIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }));
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                hamburgerIcon.classList.toggle('hidden');
+                closeIcon.classList.toggle('hidden');
             });
 
             window.addEventListener('popstate', updateActiveState);
             updateActiveState();
             
             const companyData = {
-                'linepay': { name: 'LINE PAY', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=LINE+Pay&font=noto+sans+tc', tier: '第一梯隊', score: [5, 5, 5, 4], analysis: { good: '展現最專業的表現，從虧損到獲利的數據故事線清晰，策略邏輯完整，視覺化呈現優秀。', bad: '缺乏與同業(如街口支付)的橫向比較，對未來支付生態系的競爭格局可以有更深入的論述。' }},
-                'daiken': { name: '大研生醫', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=大研生醫&font=noto+sans+tc', tier: '第二梯隊', score: [4, 4, 4, 2], analysis: { good: '運用「七大戰略引擎」概念展現系統性思維，品牌代言人策略成功，營收與毛利表現亮眼。', bad: '對庫存週轉天數飆升(53→214天)與負債比率攀升(39%→67%)的風險溝通不足，需主動解釋。' }},
-                'bafang': { name: '八方雲集', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=八方雲集&font=noto+sans+tc', tier: '第三梯隊', score: [3, 3, 2, 2], analysis: { good: '企業歷史脈絡與多品牌矩陣清晰，費用率管理穩定，區域佔比等數據透明。', bad: '近年食安事件的處理說明不夠充分，對負面消息的處理顯得被動，需要更積極的危機溝通策略。' }},
-                'gogolook': { name: 'Gogolook', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=Gogolook&font=noto+sans+tc', tier: '第三梯隊', score: [4, 3, 3, 2], analysis: { good: '產業痛點與產品矩陣的敘事清楚，具備AI信任科技領導者的宏大願景與技術護城河。', bad: '市場預期管理面臨挑戰(年跌幅-42.57%)，需更有效解釋獲利轉機與國際擴張策略，將社會價值轉化為投資價值。' }},
-                'chtsecurity': { name: '中華資安', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=中華資安&font=noto+sans+tc', tier: '第二梯隊', score: [3, 4, 3, 4], analysis: { good: '採用線上線下混合模式，漸進式資訊披露策略成功，有效覆蓋不同投資人，市場反應正面。', bad: '內容較為制式，可增加合約結構拆解(一次性 vs. 維運ARR)等更深入的財務指標，強化成長故事。' }},
-                'dawushan': { name: '大武山', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=大武山&font=noto+sans+tc', tier: '第三梯隊', score: [3, 2, 2, 2], analysis: { good: '成功將傳統農業定位為科技升級股，展現差異化策略，品牌形象一致。', bad: '需更具體展示科技化升級的投資回報率(ROI)，並深化成本傳導機制(如飼料成本)與價格對沖策略的說明。' }},
+                'linepay': { name: 'LINE PAY', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=LINE+Pay&font=noto+sans+tc', tier: '第一梯隊', score: [5, 5, 5, 4, 5], analysis: { good: '展現最專業的表現，從虧損到獲利的數據故事線清晰，策略邏輯完整，視覺化呈現優秀。', bad: '缺乏與同業(如街口支付)的橫向比較，對未來支付生態系的競爭格局可以有更深入的論述。' }},
+                'daiken': { name: '大研生醫', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=%E5%A4%A7%E7%A0%94%E7%94%9F%E9%86%AB&font=noto+sans+tc', tier: '第二梯隊', score: [4, 4, 4, 2, 4], analysis: { good: '運用「七大戰略引擎」概念展現系統性思維，品牌代言人策略成功，營收與毛利表現亮眼。', bad: '對庫存週轉天數飆升(53→214天)與負債比率攀升(39%→67%)的風險溝通不足，需主動解釋。' }},
+                'bafang': { name: '八方雲集', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=%E5%85%AB%E6%96%B9%E9%9B%B2%E9%9B%86&font=noto+sans+tc', tier: '第三梯隊', score: [3, 3, 2, 2, 3], analysis: { good: '企業歷史脈絡與多品牌矩陣清晰，費用率管理穩定，區域佔比等數據透明。', bad: '近年食安事件的處理說明不夠充分，對負面消息的處理顯得被動，需要更積極的危機溝通策略。' }},
+                'gogolook': { name: 'Gogolook', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=Gogolook&font=noto+sans+tc', tier: '第三梯隊', score: [4, 3, 3, 2, 4], analysis: { good: '產業痛點與產品矩陣的敘事清楚，具備AI信任科技領導者的宏大願景與技術護城河。', bad: '市場預期管理面臨挑戰(年跌幅-42.57%)，需更有效解釋獲利轉機與國際擴張策略，將社會價值轉化為投資價值。' }},
+                'chtsecurity': { name: '中華資安', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=%E4%B8%AD%E8%8F%AF%E8%B3%87%E5%AE%89&font=noto+sans+tc', tier: '第二梯隊', score: [3, 4, 3, 4, 3], analysis: { good: '採用線上線下混合模式，漸進式資訊披露策略成功，有效覆蓋不同投資人，市場反應正面。', bad: '內容較為制式，可增加合約結構拆解(一次性 vs. 維運ARR)等更深入的財務指標，強化成長故事。' }},
+                'dawushan': { name: '大武山', logo: 'https://placehold.co/100x50/FFFFFF/000000?text=%E5%A4%A7%E6%AD%A6%E5%B1%B1&font=noto+sans+tc', tier: '第三梯隊', score: [3, 2, 2, 2, 3], analysis: { good: '成功將傳統農業定位為科技升級股，展現差異化策略，品牌形象一致。', bad: '需更具體展示科技化升級的投資回報率(ROI)，並深化成本傳導機制(如飼料成本)與價格對沖策略的說明。' }},
             };
 
             const selectorContainer = document.getElementById('company-selector');
@@ -318,20 +370,26 @@
 
             Object.keys(companyData).forEach(key => {
                 const company = companyData[key];
+                const wrapper = document.createElement('div');
+                wrapper.className = 'company-logo';
+                wrapper.dataset.company = key;
+                
                 const logoEl = document.createElement('img');
                 logoEl.src = company.logo;
                 logoEl.alt = company.name;
-                logoEl.className = 'company-logo h-12 w-auto object-contain rounded-md';
-                logoEl.dataset.company = key;
-                selectorContainer.appendChild(logoEl);
+                logoEl.className = 'h-12 w-auto object-contain';
+                
+                wrapper.appendChild(logoEl);
+                selectorContainer.appendChild(wrapper);
             });
             
             selectorContainer.addEventListener('click', function(e) {
-                if(e.target.tagName === 'IMG') {
-                    const companyKey = e.target.dataset.company;
+                const logoWrapper = e.target.closest('.company-logo');
+                if(logoWrapper) {
+                    const companyKey = logoWrapper.dataset.company;
                     
                     document.querySelectorAll('.company-logo').forEach(el => el.classList.remove('selected'));
-                    e.target.classList.add('selected');
+                    logoWrapper.classList.add('selected');
 
                     displayCompanyDetails(companyKey);
                 }
@@ -361,66 +419,94 @@
             document.querySelector(`.company-logo[data-company="${firstCompanyKey}"]`).classList.add('selected');
             displayCompanyDetails(firstCompanyKey);
             
-            const ctx = document.getElementById('companyComparisonChart').getContext('2d');
-            const chartLabels = Object.values(companyData).map(c => c.name);
-            const chartDataSets = [
-                {
-                    label: '專業度與清晰度',
-                    data: Object.values(companyData).map(c => c.score[0]),
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: '數據支撐完整性',
-                    data: Object.values(companyData).map(c => c.score[1]),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: '策略邏輯與願景',
-                    data: Object.values(companyData).map(c => c.score[2]),
-                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: '風險溝通透明度',
-                    data: Object.values(companyData).map(c => c.score[3]),
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }
+            const ctx = document.getElementById('companyRadarChart').getContext('2d');
+            
+            const radarLabels = [
+                '專業度與清晰度',
+                '數據支撐完整性',
+                '策略邏輯與願景',
+                '風險溝通透明度',
+                ['商業模式產品', '內容述說力']
             ];
+            
+            const radarDataSets = Object.values(companyData).map((company, index) => {
+                const colors = [
+                    'rgba(74, 124, 89, 0.4)',
+                    'rgba(54, 162, 235, 0.4)',
+                    'rgba(255, 206, 86, 0.4)',
+                    'rgba(255, 99, 132, 0.4)',
+                    'rgba(153, 102, 255, 0.4)',
+                    'rgba(255, 159, 64, 0.4)'
+                ];
+                const borderColors = [
+                    'rgb(74, 124, 89)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 206, 86)',
+                    'rgb(255, 99, 132)',
+                    'rgb(153, 102, 255)',
+                    'rgb(255, 159, 64)'
+                ];
+                return {
+                    label: company.name,
+                    data: company.score,
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: borderColors[index % borderColors.length],
+                    borderWidth: 2,
+                    pointBackgroundColor: borderColors[index % borderColors.length]
+                };
+            });
 
-            const companyComparisonChart = new Chart(ctx, {
-                type: 'bar',
+            const companyRadarChart = new Chart(ctx, {
+                type: 'radar',
                 data: {
-                    labels: chartLabels,
-                    datasets: chartDataSets
+                    labels: radarLabels,
+                    datasets: radarDataSets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 5,
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 1,
+                                backdropColor: 'rgba(255, 255, 255, 0.75)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 12
+                                },
+                                color: '#333'
                             }
                         }
                     },
                     plugins: {
                         title: {
                             display: true,
-                            text: '台灣六家企業法說會表現維度評分'
+                            text: '台灣六家企業法說會表現維度評分',
+                             font: {
+                                size: 16
+                            }
                         },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const item = tooltipItems[0];
+                                    let label = item.chart.data.labels[item.dataIndex];
+                                    if (Array.isArray(label)) {
+                                      return label.join(' ');
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        },
                     }
                 }
             });
@@ -429,3 +515,4 @@
     </script>
 </body>
 </html>
+
